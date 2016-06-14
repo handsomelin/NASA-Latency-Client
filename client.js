@@ -5,8 +5,12 @@ var getmac = require('getmac').getMac
 var localip = require('local-ip')
 var interface = 'ens33'
 
-var hname = null //hostname/ip change here!!!!!!!!!!!!!
-var hport = null //hostport
+var hname = process.argv[2]
+var hport = process.argv[3]
+
+//process.argv.forEach(function(a){
+//	console.log(a)
+//})
 
 var reqReg = new http.ClientRequest({
 	hostname: hname,
