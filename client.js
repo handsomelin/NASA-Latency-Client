@@ -5,7 +5,35 @@ var getmac = require('getmac').getMac
 var localip = require('local-ip')
 var interface = 'ens33'
 
-var j = schedule.scheduleJob('10 * * * * *', function(){
+var reqReg = new http.ClientRequest({
+	hostname: 'www.google.com',
+	port: 80,
+	path: '/reg',
+	method: 'POST'
+})
+
+var dataReg = {
+	mac: null,
+	ip_local: null
+}
+
+function reg(dataReg, callback){
+	getmac(function(error, macAddr){
+		dataReg.mac = macAddr
+		localip(interface, function(error, lip){
+			dataReg.ip_local = lip
+			callback(dataReg)
+		})
+	})
+}
+
+reg(dataReg, function(dataReg){
+	reqReg.end(JSON.stringify(dataReg), function(){
+			console.log(dataReg)
+	})
+})
+
+var j = schedule.scheduleJob('5 * * * * *', function(){
 	var data = {
 		mac: null,
 		privateIP: null,
@@ -13,10 +41,10 @@ var j = schedule.scheduleJob('10 * * * * *', function(){
 	}
 
 	var req = new http.ClientRequest({
-		hostname: "www.google.com",
+		hostname: 'www.google.com',
 		port: 80,
-		path: "/",
-		method: "POST"
+		path: '/report',
+		method: 'POST'
 	})
 
 	var session = ping.createSession()
