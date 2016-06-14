@@ -1,15 +1,20 @@
-var https = require('https')
+var http = require('http')
 var ping = require('net-ping')
 var schedule = require('node-schedule')
+var getmac = require('getmac').getMac
+var localip = require('local-ip')
+var interface = 'ens33'
 
-var j = schedule.scheduleJob('* 5 * * * *', function(){
+var j = schedule.scheduleJob('10 * * * * *', function(){
 	var data = {
+		mac: null,
+		privateIP: null,
 		latency: null
 	}
 
-	var req = new https.request({
+	var req = new http.ClientRequest({
 		hostname: "www.google.com",
-		port: 443,
+		port: 80,
 		path: "/",
 		method: "POST"
 	})
@@ -24,7 +29,14 @@ var j = schedule.scheduleJob('* 5 * * * *', function(){
 			else{
 				data.latency = ms
 			}
-			callback(data)
+			getmac(function(error, macAddr){
+				data.mac = macAddr
+				localip(interface, function(error, lip){
+					data.privateIP = lip
+					callback(data)
+				})
+				
+			})
 		})
 	}
 
