@@ -5,9 +5,12 @@ var getmac = require('getmac').getMac
 var localip = require('local-ip')
 var interface = 'ens33'
 
+var hname = null //hostname/ip change here!!!!!!!!!!!!!
+var hport = null //hostport
+
 var reqReg = new http.ClientRequest({
-	hostname: 'www.google.com',
-	port: 80,
+	hostname: hname,
+	port: hport,
 	path: '/reg',
 	method: 'POST'
 })
@@ -33,7 +36,7 @@ reg(dataReg, function(dataReg){
 	})
 })
 
-var j = schedule.scheduleJob('0,5,10,15,20,25,30,35,40,45,50,55 * * * * *', function(){
+var j = schedule.scheduleJob('* 0,5,10,15,20,25,30,35,40,45,50,55 * * * *', function(){
 	var data = {
 		ip_local: null,
 		ip_remote: null,
@@ -41,15 +44,15 @@ var j = schedule.scheduleJob('0,5,10,15,20,25,30,35,40,45,50,55 * * * * *', func
 	}
 
 	var req = new http.ClientRequest({
-		hostname: 'www.google.com',
-		port: 80,
+		hostname: hname,
+		port: hport,
 		path: '/report',
 		method: 'POST'
 	})
 
 	var reqGet = new http.ClientRequest({
-		hostname: 'www.google.com',
-		port: 80,
+		hostname: hname,
+		port: hport,
 		path: '/list'
 	})
 
