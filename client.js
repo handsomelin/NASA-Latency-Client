@@ -33,11 +33,11 @@ reg(dataReg, function(dataReg){
 	})
 })
 
-var j = schedule.scheduleJob('5 * * * * *', function(){
+var j = schedule.scheduleJob('0,5,10,15,20,25,30,35,40,45,50,55 * * * * *', function(){
 	var data = {
-		mac: null,
-		privateIP: null,
-		latency: null
+		ip_local: null,
+		ip_remote: null,
+		rtt: null
 	}
 
 	var req = new http.ClientRequest({
@@ -47,31 +47,49 @@ var j = schedule.scheduleJob('5 * * * * *', function(){
 		method: 'POST'
 	})
 
+	var reqGet = new http.ClientRequest({
+		hostname: 'www.google.com',
+		port: 80,
+		path: '/list'
+	})
+
 	var session = ping.createSession()
 
 	function getLatency(target, data, callback){
 		session.pingHost(target, function(error, target, sent, rcvd){
+			data.ip_remote = target
 			var ms = rcvd - sent
 			if(error)
-				console.log(target + ": " + error.toString())
+				data.rtt = -1
 			else{
-				data.latency = ms
+				data.rtt = ms
 			}
-			getmac(function(error, macAddr){
-				data.mac = macAddr
-				localip(interface, function(error, lip){
-					data.privateIP = lip
-					callback(data)
+			localip(interface, function(error, lip){
+				data.ip_local = lip
+				callback(data)
+			})		
+		})
+	}
+
+	function getList(reqGet, data){
+		http.get(reqGet, function(res){
+			res.on('data', function(targetsString){
+				var targets = JSON.parse(targetsString)
+				targets.forEach(function(target){
+					getLatency(target, data, function(data){
+						req.end(JSON.stringify(data), function(){
+							console.log(data)
+						})
+					})
 				})
-				
 			})
 		})
 	}
 
-	getLatency('8.8.8.8', data, function(data){
-		req.end(JSON.stringify(data), function(){
-			console.log(data)
-		})
-	})
+//	getLatency('8.8.8.8', data, function(data){
+//		req.end(JSON.stringify(data), function(){
+//			console.log(data)
+//		})
+//	})
 })
 
