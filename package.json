@@ -4,8 +4,11 @@
   "description": "",
   "main": "client.js",
   "dependencies": {
+    "getmac": "^1.2.1",
+    "local-ip": "^1.0.1",
     "nan": "^2.3.5",
     "net-ping": "^1.2.0",
+    "node-schedule": "^1.1.0",
     "raw-socket": "^1.5.0",
     "sqlite3": "^3.1.4"
   },

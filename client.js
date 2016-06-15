@@ -3,10 +3,10 @@ var ping = require('net-ping')
 var schedule = require('node-schedule')
 var getmac = require('getmac').getMac
 var localip = require('local-ip')
-var interface = 'ens33'
+var interface = process.argv[2]
 
-var hname = process.argv[2]
-var hport = process.argv[3]
+var hname = process.argv[3]
+var hport = process.argv[4]
 
 //process.argv.forEach(function(a){
 //	console.log(a)
