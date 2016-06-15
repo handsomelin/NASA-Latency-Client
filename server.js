@@ -47,9 +47,9 @@ function handleRequest(req, res){
           new Promise(function(resolve, reject) {
             db.run('UPDATE `device` SET `active` = 0 WHERE `active` = 1 AND `ip` = ?', ip.toLong(body.ip_local), function(err) {
               if(err) throw err;
-              resolve()
+              resolve();
             });
-          ).then(function() {
+          }).then(function() {
             db.run('INSERT INTO device `mac`, `ip`, `ip_pub`, `active`, `ctime` VALUES (?, ?, ?, ?)', macToLong(body.mac), ip.toLong(body.ip_local), ip.toLong(req.connection.remoteAddress), 1, Math.abs(new Date()), function(err) {
               res.end('ok');
             });
