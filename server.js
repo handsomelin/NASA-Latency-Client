@@ -1,3 +1,7 @@
+process.on('uncaughtException', function (err) {
+  console.err(err);
+});
+
 var http = require('http');
 var ip = require('ip');
 var Promise = require('bluebird');
