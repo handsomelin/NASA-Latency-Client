@@ -67,12 +67,12 @@ var j = schedule.scheduleJob('* 0,5,10,15,20,25,30,35,40,45,50,55 * * * *', func
 			session.pingHost(target, function(error, target, sent, rcvd){
 				data.ip_remote = target
 				var ms = rcvd - sent
-				
+
 				var pingData = {
 					"rtt": null,
 					"ts": sent
 				}
-				
+
 				if(error)
 					pingData.rtt = -1
 				else
@@ -81,7 +81,7 @@ var j = schedule.scheduleJob('* 0,5,10,15,20,25,30,35,40,45,50,55 * * * *', func
 
 				localip(interface, function(error, lip){
 					data.ip_local = lip
-				})		
+				})
 			})
 		}
 		callback(data)
@@ -108,4 +108,3 @@ var j = schedule.scheduleJob('* 0,5,10,15,20,25,30,35,40,45,50,55 * * * *', func
 //		})
 //	})
 })
-
