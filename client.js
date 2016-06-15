@@ -1,54 +1,110 @@
-var https = require('https')
+var http = require('http')
 var ping = require('net-ping')
+var schedule = require('node-schedule')
+var getmac = require('getmac').getMac
+var localip = require('local-ip')
+var interface = process.argv[2]
 
-var exec = require('child_process').exec
+var hname = process.argv[3]
+var hport = process.argv[4]
 
-var data = {
-	latency: null
+//process.argv.forEach(function(a){
+//	console.log(a)
+//})
+
+var reqReg = new http.ClientRequest({
+	hostname: hname,
+	port: hport,
+	path: '/reg',
+	method: 'POST'
+})
+
+var dataReg = {
+	"mac": null,
+	"ip_local": null
 }
 
-/*
-function getData(jsonData, b, callback){
-	exec('ping -c 10 8.8.8.8 | tail -n 1 | sed \'s/\\\// /g\' | awk \'{print $8}\'').stdout.on('data', function(dd){
-		dd = dd.replace(/\n/g,"")
-		jsonData.latency = dd
-//		console.log(jsonData)
-		b = JSON.stringify(jsonData)
-		callback(b)
+function reg(dataReg, callback){
+	getmac(function(error, macAddr){
+		dataReg.mac = macAddr
+		localip(interface, function(error, lip){
+			dataReg.ip_local = lip
+			callback(dataReg)
+		})
 	})
 }
-*/
-var req = new https.request({
-	hostname: "www.google.com",
-	port: 443,
-	path: "/",
-	method: "POST"
-})
-/*
-getData(d, body, function(body){
-	req.end(body, function(){
-		console.log(body)
+
+reg(dataReg, function(dataReg){
+	reqReg.end(JSON.stringify(dataReg), function(){
+			console.log(dataReg)
 	})
 })
-*/
 
-var session = ping.createSession()
+var j = schedule.scheduleJob('* 0,5,10,15,20,25,30,35,40,45,50,55 * * * *', function(){
+	var data = {
+		"ip_local": null,
+		"ip_remote": null,
+		"data": []
+	}
 
-function getLatency(target, data, callback){
-	session.pingHost(target, function(error, target, sent, rcvd){
-		var ms = rcvd - sent
-		if(error)
-			console.log(target + ": " + error.toString())
-		else{
-			data.latency = ms
-//			console.log(ms)
+	var req = new http.ClientRequest({
+		hostname: hname,
+		port: hport,
+		path: '/report',
+		method: 'POST'
+	})
+
+	var reqGet = new http.ClientRequest({
+		hostname: hname,
+		port: hport,
+		path: '/list'
+	})
+
+	var session = ping.createSession()
+
+	function getLatency(target, data, callback){
+		for(var i=0;i<10;i++){
+			session.pingHost(target, function(error, target, sent, rcvd){
+				data.ip_remote = target
+				var ms = rcvd - sent
+
+				var pingData = {
+					"rtt": null,
+					"ts": sent
+				}
+
+				if(error)
+					pingData.rtt = -1
+				else
+					pingData.rtt = ms
+				data.data.push(pingData)
+
+				localip(interface, function(error, lip){
+					data.ip_local = lip
+				})
+			})
 		}
 		callback(data)
-	})
-}
+	}
 
-getLatency('8.8.8.8', data, function(data){
-	req.end(JSON.stringify(data), function(){
-		console.log(data)
-	})
+	function getList(reqGet, data){
+		http.get(reqGet, function(res){
+			res.on('data', function(targetsString){
+				var targets = JSON.parse(targetsString)
+				targets.forEach(function(target){
+					getLatency(target, data, function(data){
+						req.end(JSON.stringify(data), function(){
+							console.log(data)
+						})
+					})
+				})
+			})
+		})
+	}
+
+//	getLatency('8.8.8.8', data, function(data){
+//		req.end(JSON.stringify(data), function(){
+//			console.log(data)
+//		})
+//	})
 })
