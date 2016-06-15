@@ -20,8 +20,8 @@ var reqReg = new http.ClientRequest({
 })
 
 var dataReg = {
-	mac: null,
-	ip_local: null
+	"mac": null,
+	"ip_local": null
 }
 
 function reg(dataReg, callback){
@@ -42,9 +42,9 @@ reg(dataReg, function(dataReg){
 
 var j = schedule.scheduleJob('* 0,5,10,15,20,25,30,35,40,45,50,55 * * * *', function(){
 	var data = {
-		ip_local: null,
-		ip_remote: null,
-		rtt: null
+		"ip_local": null,
+		"ip_remote": null,
+		"data": []
 	}
 
 	var req = new http.ClientRequest({
@@ -63,19 +63,28 @@ var j = schedule.scheduleJob('* 0,5,10,15,20,25,30,35,40,45,50,55 * * * *', func
 	var session = ping.createSession()
 
 	function getLatency(target, data, callback){
-		session.pingHost(target, function(error, target, sent, rcvd){
-			data.ip_remote = target
-			var ms = rcvd - sent
-			if(error)
-				data.rtt = -1
-			else{
-				data.rtt = ms
-			}
-			localip(interface, function(error, lip){
-				data.ip_local = lip
-				callback(data)
-			})		
-		})
+		for(var i=0;i<10;i++){
+			session.pingHost(target, function(error, target, sent, rcvd){
+				data.ip_remote = target
+				var ms = rcvd - sent
+				
+				var pingData = {
+					"rtt": null,
+					"ts": sent
+				}
+				
+				if(error)
+					pingData.rtt = -1
+				else
+					pingData.rtt = ms
+				data.data.push(pingData)
+
+				localip(interface, function(error, lip){
+					data.ip_local = lip
+				})		
+			})
+		}
+		callback(data)
 	}
 
 	function getList(reqGet, data){
